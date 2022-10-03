@@ -45,6 +45,8 @@ int main()
 
     Sound flickSound = LoadSound("assets/flick.wav");
     Sound udouAngrySound = LoadSound("assets/udou_angry.wav");
+    Sound udouWatSound = LoadSound("assets/udou_wat.wav");
+    Sound udouDieSound = LoadSound("assets/udou_die.wav");
     Sound bzzSound = LoadSound("assets/bzz.wav");
     Sound clickSound = LoadSound("assets/click.wav");
 
@@ -100,8 +102,8 @@ int main()
     int foodsY[foodsSize];
     for (int i = 0; i < foodsSize; i++) 
     {
-        foodsX[i] = rand() % WINW;
-        foodsY[i] = rand() % WINH;
+        foodsX[i] = rand() % (WINW-50) + 25;
+        foodsY[i] = rand() % (WINH-30) + 15;
     }
 
     const int enmsSize = 5;
@@ -192,6 +194,8 @@ if (IsKeyPressed(KEY_SPACE) && (int)battery >= 1) {
 if ((int)battery <= 0) {
     lightOn = false;
     battery = 0;
+    if (prevlightOn)
+        PlaySound(udouAngrySound);
 }
 
 if (lightOn)
@@ -223,8 +227,8 @@ for (int x = 0; x < WINW; x++)
 
 if (prevlightOn != lightOn) {
     PlaySound(flickSound);
-    if (!lightOn && rand() % 2 == 0)
-        PlaySound(udouAngrySound);
+    if (!lightOn && rand() % 2 == 0 && (int)battery > 0)
+        PlaySound(udouWatSound);
 }
     
 
@@ -248,8 +252,8 @@ BeginTextureMode(renderTarg);
             foodsX[i] + 1 > _position.x - _texture.width/2 && 
             foodsY[i] < _position.y + _texture.height/2 &&
             foodsY[i] + 1 > _position.y - _texture.height/2) {
-                foodsX[i] = rand() % WINW;
-                foodsY[i] = rand() % WINH;
+                foodsX[i] = rand() % (WINW-50) + 25;
+                foodsY[i] = rand() % (WINH-30) + 15;
                 battery += 1;
                 PlaySound(bzzSound);
         }
@@ -264,15 +268,13 @@ BeginTextureMode(renderTarg);
             enmsY[i] += (_position.y - enmsY[i]) * pow(5.f/(distP),2) * dt;
         }
 
-        if (enmsX[i] < _position.x + _texture.width/2 &&
-            enmsX[i] + 2 > _position.x - _texture.width/2 && 
-            enmsY[i] < _position.y + _texture.height/2 &&
-            enmsY[i] + 2 > _position.y - _texture.height/2) {
+        if (distP < 5) {
                 enmsX[i] = rand() % WINW;
                 enmsY[i] = rand() % WINH;
                 battery = 0;
                 died = true;
                 gameState = MENU;
+                PlaySound(udouDieSound);
         }
     }
 
@@ -334,14 +336,14 @@ BeginDrawing();
     DrawTexturePro(renderTarg.texture, {0,0,(float)renderTarg.texture.width,(float)-renderTarg.texture.height}, {0,0,SCRW,SCRH}, {0,0}, 0, {100,100,100,255});
     DrawTextEx(font, "MENU", {100 - 50, _position.y}, 100, 0, BATTERY_GREEN);
     DrawTextEx(font, "[SPACE] START", {100, _position.y + 100}, 50, 0, BATTERY_GREEN);    
-    DrawTextEx(font, "[C] FOR CONTROLS", {100, _position.y + 150}, 50, 0, BATTERY_GREEN);
+    DrawTextEx(font, "[C] SHOW CONTROLS", {100, _position.y + 150}, 50, 0, BATTERY_GREEN);
     DrawTextEx(font, "[ESCAPE] EXIT GAME", {100, _position.y + 200}, 50, 0, BATTERY_GREEN);
     DrawTextEx(font, ("HIGHSCORE: " + std::to_string(highscore)).c_str(), {100, _position.y + 300}, 50, 0, BATTERY_GREEN);
 
     if (showControls) {
-        DrawTextEx(font, "Move with the mouse", {100, _position.y + SCRH-300}, 40, 0, BATTERY_GREEN);
-        DrawTextEx(font, "Flick your light on with [SPACE]", {100, _position.y + SCRH-250}, 40, 0, BATTERY_GREEN);
-        DrawTextEx(font, "(if you have enough energy)", {102, _position.y + SCRH-200}, 30, 0, BATTERY_GREEN);
+        DrawTextEx(font, "Move with the mouse", {100, _position.y + SCRH-300}, 40, 0, {199, 199, 199, 255});
+        DrawTextEx(font, "Flick your light on with [SPACE]", {100, _position.y + SCRH-250}, 40, 0, {199, 199, 199, 255});
+        DrawTextEx(font, "(if you have enough energy)", {102, _position.y + SCRH-200}, 30, 0, {199, 199, 199, 255});
     }
     
 
