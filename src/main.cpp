@@ -65,7 +65,9 @@ int main()
     Texture2D _texture = LoadTexture("assets/udou.png");
     Texture2D treeTextures[3] = {LoadTexture("assets/tree0.png"), LoadTexture("assets/tree1.png"), LoadTexture("assets/tree2.png")};
 
+
     RESTART:
+    bool died = false;
 
     Vector2 _position = {WINW/2, WINH/2};
     Vector2 _velocity;
@@ -227,19 +229,19 @@ BeginTextureMode(renderTarg);
             foodsY[i] + 2 > _position.y - _texture.height/2) {
                 foodsX[i] = rand() % WINW;
                 foodsY[i] = rand() % WINH;
-                battery += 1;
+                battery = 0;
         }
             
     }
     for (int i = 0; i < enmsSize; i++)
     {
-        enmsX[i] += (rand() % 3 - 1) * dt;
-        enmsY[i] += (rand() % 3 - 1 ) * dt;
+        
         DrawRectangle(enmsX[i]*SCALE, enmsY[i]*SCALE, 2*SCALE, 2*SCALE, RED);
         
         float distP = sqrt(pow(enmsX[i] - _position.x, 2) + pow(enmsY[i] - _position.y, 2));
         if (distP < 16) {
-            
+            enmsX[i] += (_position.x - enmsX[i]) / distP * dt;
+            enmsY[i] += (_position.y - enmsY[i]) / distP * dt;
         }
 
         if (enmsX[i] < _position.x + _texture.width/2 &&
@@ -248,7 +250,9 @@ BeginTextureMode(renderTarg);
             enmsY[i] + 2 > _position.y - _texture.height/2) {
                 enmsX[i] = rand() % WINW;
                 enmsY[i] = rand() % WINH;
-                battery -= 10;
+                battery = 0;
+                died = true;
+                gameState = MENU;
         }
     }
 
@@ -296,6 +300,8 @@ BeginDrawing();
     DrawTextEx(font, "SPACE TO START", {100, _position.y + 150}, 50, 0, BATTERY_GREEN);
     DrawTextEx(font, "ESCAPE TO EXIT GAME", {100, _position.y + 100}, 50, 0, BATTERY_GREEN);
     DrawTextEx(font, ("HIGHSCORE: " + std::to_string(highscore)).c_str(), {100, _position.y + 300}, 50, 0, BATTERY_GREEN);
+    if (died)
+        DrawTextEx(font, "YOu dieD", {500, _position.y + 100}, 273, 0, BATTERY_RED);
 EndDrawing();
     break;
 
