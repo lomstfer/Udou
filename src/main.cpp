@@ -202,9 +202,9 @@ for (int x = 0; x < WINW; x++)
     {
         float d = sqrt(pow(float(x) - _position.x, 2) + pow(float(y) - _position.y, 2));
         if (d < 32.f * lightSize)
-            ImageDrawPixel(&alphaTextureImg, x, y, {5,5,5,(unsigned char)(clamp(d*10.f+1000.f*(1.f - lightSize),0,255-lightSize*50))});
+            ImageDrawPixel(&alphaTextureImg, x, y, {5,5,5,(unsigned char)(clamp(d*10.f+1000.f*(1.f - lightSize),0,255-lightSize*60))});
         else
-            ImageDrawPixel(&alphaTextureImg, x, y, {5,5,5,(unsigned char)(int)(255-lightSize*50)});
+            ImageDrawPixel(&alphaTextureImg, x, y, {5,5,5,(unsigned char)(int)(255-lightSize*60)});
     }
 }
 
@@ -222,11 +222,12 @@ BeginTextureMode(renderTarg);
     }
     for (int i = 0; i < foodsSize; i++)
     {
-        DrawRectangle(foodsX[i]*SCALE, foodsY[i]*SCALE, 2*SCALE, 2*SCALE, GREEN);
+        //DrawRectangle(foodsX[i]*SCALE, foodsY[i]*SCALE, 1*SCALE, 1*SCALE, GREEN);
+        DrawTextEx(font, "+           |||||||||||||||||||||||||||||||||", {foodsX[i]*SCALE, foodsY[i]*SCALE}, 20, -10, BATTERY_GREEN);
         if (foodsX[i] < _position.x + _texture.width/2 &&
-            foodsX[i] + 2 > _position.x - _texture.width/2 && 
+            foodsX[i] + 1 > _position.x - _texture.width/2 && 
             foodsY[i] < _position.y + _texture.height/2 &&
-            foodsY[i] + 2 > _position.y - _texture.height/2) {
+            foodsY[i] + 1 > _position.y - _texture.height/2) {
                 foodsX[i] = rand() % WINW;
                 foodsY[i] = rand() % WINH;
                 battery += 1;
@@ -234,13 +235,12 @@ BeginTextureMode(renderTarg);
     }
     for (int i = 0; i < enmsSize; i++)
     {
-        
         DrawRectangle(enmsX[i]*SCALE, enmsY[i]*SCALE, 2*SCALE, 2*SCALE, {99, 94, 90, 255});
         
         float distP = sqrt(pow(enmsX[i] - _position.x, 2) + pow(enmsY[i] - _position.y, 2));
         if (distP < 16) {
-            enmsX[i] += (_position.x - enmsX[i]) / distP * dt;
-            enmsY[i] += (_position.y - enmsY[i]) / distP * dt;
+            enmsX[i] += (_position.x - enmsX[i]) * (1.f/(distP)) * dt;
+            enmsY[i] += (_position.y - enmsY[i]) * (1.f/(distP)) * dt;
         }
 
         if (enmsX[i] < _position.x + _texture.width/2 &&
