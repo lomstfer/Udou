@@ -33,6 +33,8 @@ int main()
     HideCursor();
     SetTargetFPS(60);
     SetExitKey(KEY_NULL);
+    Image icon = LoadImage("assets/icon.png");
+    SetWindowIcon(icon);
 
     Texture2D cursorTexture = LoadTexture("assets/cursor.png");
 
@@ -121,7 +123,7 @@ int main()
     float timer = 10;
     float timerSet = timer;
 
-    float battery = 11;
+    float battery = 10.9f;
 
     float dt;
     bool gameOn = true;
@@ -147,7 +149,7 @@ switch (gameState)
 {
 case PLAYING:
 
-if (battery > highscore) {
+if ((int)battery > highscore) {
     highscore = battery;
 }
 
@@ -185,7 +187,7 @@ if (timer <= 0) {
 }
 
 if ((int)battery >= 1 && lightOn)
-    battery -= dt / 3.f;
+    battery -= dt / 2.f;
 
 if (IsKeyPressed(KEY_SPACE) && (int)battery >= 1) {
     lightOn = true;
@@ -247,7 +249,7 @@ BeginTextureMode(renderTarg);
     for (int i = 0; i < foodsSize; i++)
     {
         //DrawRectangle(foodsX[i]*SCALE, foodsY[i]*SCALE, 1*SCALE, 1*SCALE, GREEN);
-        DrawTextEx(font, "+", {foodsX[i]*SCALE, foodsY[i]*SCALE}, 20, 0, BATTERY_GREEN);
+        DrawTextEx(font, "+", {foodsX[i]*SCALE, foodsY[i]*SCALE}, 37, 0, BATTERY_GREEN);
         if (foodsX[i] < _position.x + _texture.width/2 &&
             foodsX[i] + 1 > _position.x - _texture.width/2 && 
             foodsY[i] < _position.y + _texture.height/2 &&
@@ -358,7 +360,7 @@ default:
 
 }
     UnloadImage(alphaTextureImg);
-    dataFileOut << highscore;
+    dataFileOut << (int)highscore;
     dataFileOut.close();
     dataFileIn.close();
     CloseAudioDevice();
