@@ -28,6 +28,7 @@ float clamp(float num, float min, float max)
 int main() 
 {
     InitWindow(SCRW, SCRH, "");
+    InitAudioDevice();
     SetWindowState(FLAG_FULLSCREEN_MODE);
     HideCursor();
     SetTargetFPS(60);
@@ -41,6 +42,13 @@ int main()
     Image alphaTextureImg = LoadImageFromTexture(alphaTexture);
 
     RenderTexture2D renderTarg = LoadRenderTexture(SCRW, SCRH);
+
+    Sound flickSound = LoadSound("assets/flick.wav");
+    Sound udouAngrySound = LoadSound("assets/udou_angry.wav");
+    Sound bzzSound = LoadSound("assets/bzz.wav");
+    Sound clickSound = LoadSound("assets/click.wav");
+
+    bool showControls = false;
 
     Vector2 mousePos;
 
@@ -106,6 +114,7 @@ int main()
     }
 
     bool lightOn = true;
+    bool prevlightOn;
     float lightSize = 1.f;
     float timer = 10;
     float timerSet = timer;
@@ -130,6 +139,8 @@ float distMouse = sqrt(pow(mousePos.x - _position.x, 2) + pow(mousePos.y - _posi
 float distMouseX = mousePos.x - _position.x;
 float distMouseY = mousePos.y - _position.y;
 
+prevlightOn = lightOn;
+
 switch (gameState)
 {
 case PLAYING:
@@ -140,6 +151,7 @@ if (battery > highscore) {
 
 if (IsKeyPressed(KEY_ESCAPE)) {
     gameState = PAUSED;
+    PlaySound(clickSound);
 }
 
 if (distMouse > 10) {
@@ -173,8 +185,9 @@ if (timer <= 0) {
 if ((int)battery >= 1 && lightOn)
     battery -= dt / 3.f;
 
-if (IsKeyPressed(KEY_SPACE) && (int)battery >= 1)
+if (IsKeyPressed(KEY_SPACE) && (int)battery >= 1) {
     lightOn = true;
+}
 
 if ((int)battery <= 0) {
     lightOn = false;
@@ -208,6 +221,13 @@ for (int x = 0; x < WINW; x++)
     }
 }
 
+if (prevlightOn != lightOn) {
+    PlaySound(flickSound);
+    if (!lightOn && rand() % 2 == 0)
+        PlaySound(udouAngrySound);
+}
+    
+
 UnloadTexture(alphaTexture);
 alphaTexture = LoadTextureFromImage(alphaTextureImg);
 
@@ -223,7 +243,7 @@ BeginTextureMode(renderTarg);
     for (int i = 0; i < foodsSize; i++)
     {
         //DrawRectangle(foodsX[i]*SCALE, foodsY[i]*SCALE, 1*SCALE, 1*SCALE, GREEN);
-        DrawTextEx(font, "+           |||||||||||||||||||||||||||||||||", {foodsX[i]*SCALE, foodsY[i]*SCALE}, 20, -10, BATTERY_GREEN);
+        DrawTextEx(font, "+", {foodsX[i]*SCALE, foodsY[i]*SCALE}, 20, 0, BATTERY_GREEN);
         if (foodsX[i] < _position.x + _texture.width/2 &&
             foodsX[i] + 1 > _position.x - _texture.width/2 && 
             foodsY[i] < _position.y + _texture.height/2 &&
@@ -231,6 +251,7 @@ BeginTextureMode(renderTarg);
                 foodsX[i] = rand() % WINW;
                 foodsY[i] = rand() % WINH;
                 battery += 1;
+                PlaySound(bzzSound);
         }
     }
     for (int i = 0; i < enmsSize; i++)
@@ -239,8 +260,8 @@ BeginTextureMode(renderTarg);
         
         float distP = sqrt(pow(enmsX[i] - _position.x, 2) + pow(enmsY[i] - _position.y, 2));
         if (distP < 16) {
-            enmsX[i] += (_position.x - enmsX[i]) * (1.f/(distP)) * dt;
-            enmsY[i] += (_position.y - enmsY[i]) * (1.f/(distP)) * dt;
+            enmsX[i] += (_position.x - enmsX[i]) * pow(5.f/(distP),2) * dt;
+            enmsY[i] += (_position.y - enmsY[i]) * pow(5.f/(distP),2) * dt;
         }
 
         if (enmsX[i] < _position.x + _texture.width/2 &&
@@ -273,35 +294,57 @@ EndDrawing();
 
 case PAUSED:
 
-if (IsKeyPressed(KEY_ESCAPE))
+if (IsKeyPressed(KEY_ESCAPE)) {
     gameState = MENU;
-if (IsKeyPressed(KEY_SPACE))
+    PlaySound(clickSound);
+}
+    
+if (IsKeyPressed(KEY_SPACE)) {
     gameState = PLAYING;
+    PlaySound(clickSound);
+}
 
 BeginDrawing();
     DrawTexturePro(renderTarg.texture, {0,0,(float)renderTarg.texture.width,(float)-renderTarg.texture.height}, {0,0,SCRW,SCRH}, {0,0}, 0, {100,100,100,255});
     DrawTextEx(font, "PAUSED", {100 - 50, _position.y}, 100, 0, batteryColor);
-    DrawTextEx(font, "SPACE TO CONTINUE", {100, _position.y + 150}, 50, 0, batteryColor);
-    DrawTextEx(font, "ESCAPE TO EXIT TO MENU", {100, _position.y + 100}, 50, 0, batteryColor);
+    DrawTextEx(font, "[SPACE] CONTINUE", {100, _position.y + 150}, 50, 0, batteryColor);
+    DrawTextEx(font, "[ESCAPE] EXIT TO MENU", {100, _position.y + 100}, 50, 0, batteryColor);
     DrawTextEx(font, ("HIGHSCORE: " + std::to_string(highscore)).c_str(), {100, _position.y + 300}, 50, 0, batteryColor);
 EndDrawing();
     break;
 
 case MENU:
-if (IsKeyPressed(KEY_ESCAPE))
+if (IsKeyPressed(KEY_ESCAPE)) {
     gameOn = false;
+    PlaySound(clickSound);
+}
 if (IsKeyPressed(KEY_SPACE)) {
     gameState = PLAYING;
+    PlaySound(clickSound);
     goto RESTART;
+    
+}
+if (IsKeyPressed(KEY_C)) {
+    PlaySound(clickSound);
+    showControls = !showControls;
 }
 
 BeginDrawing();
     ClearBackground({0,0,0,0});
     DrawTexturePro(renderTarg.texture, {0,0,(float)renderTarg.texture.width,(float)-renderTarg.texture.height}, {0,0,SCRW,SCRH}, {0,0}, 0, {100,100,100,255});
     DrawTextEx(font, "MENU", {100 - 50, _position.y}, 100, 0, BATTERY_GREEN);
-    DrawTextEx(font, "SPACE TO START", {100, _position.y + 150}, 50, 0, BATTERY_GREEN);
-    DrawTextEx(font, "ESCAPE TO EXIT GAME", {100, _position.y + 100}, 50, 0, BATTERY_GREEN);
+    DrawTextEx(font, "[SPACE] START", {100, _position.y + 100}, 50, 0, BATTERY_GREEN);    
+    DrawTextEx(font, "[C] FOR CONTROLS", {100, _position.y + 150}, 50, 0, BATTERY_GREEN);
+    DrawTextEx(font, "[ESCAPE] EXIT GAME", {100, _position.y + 200}, 50, 0, BATTERY_GREEN);
     DrawTextEx(font, ("HIGHSCORE: " + std::to_string(highscore)).c_str(), {100, _position.y + 300}, 50, 0, BATTERY_GREEN);
+
+    if (showControls) {
+        DrawTextEx(font, "Move with the mouse", {100, _position.y + SCRH-300}, 40, 0, BATTERY_GREEN);
+        DrawTextEx(font, "Flick your light on with [SPACE]", {100, _position.y + SCRH-250}, 40, 0, BATTERY_GREEN);
+        DrawTextEx(font, "(if you have enough energy)", {102, _position.y + SCRH-200}, 30, 0, BATTERY_GREEN);
+    }
+    
+
     if (died)
         DrawTextEx(font, "YOu dieD", {clamp(_position.x * SCALE - 200, 500, SCRW - 500), clamp(_position.y * SCALE, 350, SCRH - 350)}, 100, 0, BATTERY_RED);
 EndDrawing();
@@ -316,5 +359,6 @@ default:
     dataFileOut << highscore;
     dataFileOut.close();
     dataFileIn.close();
+    CloseAudioDevice();
     CloseWindow();
 }
