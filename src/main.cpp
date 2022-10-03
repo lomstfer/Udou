@@ -71,7 +71,7 @@ int main()
 
     Vector2 _position = {WINW/2, WINH/2};
     Vector2 _velocity;
-    int _maxVelocity = 15;
+    int _maxVelocity = 10;
     float _rotation = 0;
 
     Color batteryColor = BATTERY_GREEN;
@@ -107,7 +107,7 @@ int main()
 
     bool lightOn = true;
     float lightSize = 1.f;
-    float timer = 20;
+    float timer = 10;
     float timerSet = timer;
 
     float battery = 11;
@@ -202,9 +202,9 @@ for (int x = 0; x < WINW; x++)
     {
         float d = sqrt(pow(float(x) - _position.x, 2) + pow(float(y) - _position.y, 2));
         if (d < 32.f * lightSize)
-            ImageDrawPixel(&alphaTextureImg, x, y, {5,5,5,(unsigned char)(clamp(d*10.f+1000.f*(1.f - lightSize),0,255-lightSize*20))});
+            ImageDrawPixel(&alphaTextureImg, x, y, {5,5,5,(unsigned char)(clamp(d*10.f+1000.f*(1.f - lightSize),0,255-lightSize*50))});
         else
-            ImageDrawPixel(&alphaTextureImg, x, y, {5,5,5,(unsigned char)(int)(255-lightSize*20)});
+            ImageDrawPixel(&alphaTextureImg, x, y, {5,5,5,(unsigned char)(int)(255-lightSize*50)});
     }
 }
 
@@ -229,14 +229,13 @@ BeginTextureMode(renderTarg);
             foodsY[i] + 2 > _position.y - _texture.height/2) {
                 foodsX[i] = rand() % WINW;
                 foodsY[i] = rand() % WINH;
-                battery = 0;
+                battery += 1;
         }
-            
     }
     for (int i = 0; i < enmsSize; i++)
     {
         
-        DrawRectangle(enmsX[i]*SCALE, enmsY[i]*SCALE, 2*SCALE, 2*SCALE, RED);
+        DrawRectangle(enmsX[i]*SCALE, enmsY[i]*SCALE, 2*SCALE, 2*SCALE, {99, 94, 90, 255});
         
         float distP = sqrt(pow(enmsX[i] - _position.x, 2) + pow(enmsY[i] - _position.y, 2));
         if (distP < 16) {
@@ -258,6 +257,9 @@ BeginTextureMode(renderTarg);
 
     // draw alpha texture on top
     DrawTexturePro(alphaTexture, {0,0,(float)alphaTexture.width,(float)alphaTexture.height}, {0,0,SCRW,SCRH}, {0,0}, 0, WHITE);
+    if (!lightOn)
+        DrawTexturePro(_texture, {0,0,(float)_texture.width,(float)_texture.height}, {_position.x*SCALE, _position.y*SCALE, _texture.width*SCALE, _texture.height*SCALE}, {_texture.width/2*SCALE, _texture.height/2*SCALE}, _rotation, {60,60,60,255});
+
 EndTextureMode();
 
 BeginDrawing();
@@ -301,7 +303,7 @@ BeginDrawing();
     DrawTextEx(font, "ESCAPE TO EXIT GAME", {100, _position.y + 100}, 50, 0, BATTERY_GREEN);
     DrawTextEx(font, ("HIGHSCORE: " + std::to_string(highscore)).c_str(), {100, _position.y + 300}, 50, 0, BATTERY_GREEN);
     if (died)
-        DrawTextEx(font, "YOu dieD", {500, _position.y + 100}, 273, 0, BATTERY_RED);
+        DrawTextEx(font, "YOu dieD", {clamp(_position.x * SCALE - 200, 500, SCRW - 500), clamp(_position.y * SCALE, 350, SCRH - 350)}, 100, 0, BATTERY_RED);
 EndDrawing();
     break;
 
